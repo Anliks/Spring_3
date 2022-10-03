@@ -30,7 +30,7 @@ public class BookRepositoryTest {
         SQLStatementCountValidator.reset();
     }
 
-    @DisplayName("Сохранить книгу и автора. Число select должно равняться 1")
+    @DisplayName("Сохранить книгу и автора. Число select должно равняться 2")
     @Test
     @Rollback
     @Sql({"classpath:sql/1_clear_schema.sql",
@@ -65,13 +65,87 @@ public class BookRepositoryTest {
         assertDeleteCount(0);
     }
 
-    // update
-    // get
-    // get all
-    // delete
+    @DisplayName("Обновить книгу и автора. Число select должно равняться 2")
+    @Test
+    @Rollback
+    @Sql({"classpath:sql/1_clear_schema.sql",
+            "classpath:sql/2_insert_person_data.sql",
+            "classpath:sql/3_insert_book_data.sql"
+    })
+    void updateBadges_thenAssertDmlCount() {
+        //Given
+        Person givenPerson = userRepository.findById(1001L).orElseThrow();
+        Book givenBook = bookRepository.findById(2002L).orElseThrow();
 
-    // * failed
+        //When
+        givenPerson.setFullName("Maxim");
+        givenPerson.setTitle("writer");
+        givenPerson.setAge(12);
+
+        Person updatedPerson = userRepository.save(givenPerson);
+
+        givenBook.setPageCount(222);
+        givenBook.setAuthor("Pushkin");
+        givenBook.setTitle("Evgeniy Onegin");
+        givenBook.setPerson(updatedPerson);
+
+        Book updatedBook = bookRepository.save(givenBook);
 
 
-    // example failed test
+        //Then
+        assertThat(updatedPerson.getAge()).isEqualTo(12);
+        assertThat(updatedBook.getAuthor()).isEqualTo("Pushkin");
+        assertThat(updatedBook.getPageCount()).isEqualTo(222);
+        assertSelectCount(2);
+        assertInsertCount(0);
+        assertUpdateCount(0);
+        assertDeleteCount(0);
+
+
+    }
+
+    @DisplayName("Получить книгу и автора. Число select должно равняться 1")
+    @Test
+    @Rollback
+    @Sql({"classpath:sql/1_clear_schema.sql",
+            "classpath:sql/2_insert_person_data.sql",
+            "classpath:sql/3_insert_book_data.sql"
+    })
+    void getBadges_thenAssertDmlCount() {
+
+        //When
+        Book findBook = bookRepository.findById(2002L).orElseThrow();
+
+        //Then
+        assertThat(findBook.getPageCount()).isEqualTo(5500);
+        assertSelectCount(1);
+        assertInsertCount(0);
+        assertUpdateCount(0);
+        assertDeleteCount(0);
+    }
+
+    @DisplayName("Удалить книгу и автора. Число select должно равняться 2")
+    @Test
+    @Rollback
+    @Sql({"classpath:sql/1_clear_schema.sql",
+            "classpath:sql/2_insert_person_data.sql",
+            "classpath:sql/3_insert_book_data.sql"
+    })
+    void deleteBadges_thenAssertDmlCount() {
+
+        //Given
+
+
+        //When
+        bookRepository.deleteById(2002L);
+
+
+        //Then
+        assertThat(bookRepository.count()).isEqualTo(1);
+        assertSelectCount(2);
+        assertInsertCount(0);
+        assertUpdateCount(0);
+        assertDeleteCount(1);
+
+    }
 }
